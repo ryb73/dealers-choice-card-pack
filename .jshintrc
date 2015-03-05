@@ -1,0 +1,7 @@
+{
+  "globalstrict": true,
+  "node": true,
+  "predef": [ "-console" ],
+  "esnext": true,
+  "nocomma": false
+}
