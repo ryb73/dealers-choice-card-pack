@@ -1,29 +1,28 @@
 "use strict";
 /* jshint mocha: true */
 
-var chai                    = require("chai"),
-    chaiAsPromised          = require("chai-as-promised"),
-    q                       = require("q"),
-    Player                  = require("../../player"),
-    GameData                = require("../../game-data"),
-    Insurance               = require("../../insurance"),
-    Car                     = require("../../car"),
-    BlueBook                = require("../../blue-book"),
-    cardPack                = require(".."),
-    Attack                  = cardPack.Attack,
-    BuyFromAutoExchangeForN = cardPack.BuyFromAutoExchangeForN,
-    Free                    = cardPack.Free,
-    SellForBlueBookPlusN    = cardPack.SellForBlueBookPlusN,
-    SellForListPlusN        = cardPack.SellForListPlusN;
+const chai                    = require("chai"),
+      q                       = require("q"),
+      dcEngine                = require("dc-engine"),
+      Player                  = dcEngine.Player,
+      GameData                = dcEngine.GameData,
+      Insurance               = dcEngine.Insurance,
+      Car                     = dcEngine.Car,
+      BlueBook                = dcEngine.BlueBook,
+      cardPack                = require(".."),
+      Attack                  = cardPack.Attack,
+      BuyFromAutoExchangeForN = cardPack.BuyFromAutoExchangeForN,
+      Free                    = cardPack.Free,
+      SellForBlueBookPlusN    = cardPack.SellForBlueBookPlusN,
+      SellForListPlusN        = cardPack.SellForListPlusN;
 
-chai.use(chaiAsPromised);
-var assert = chai.assert;
+const assert = chai.assert;
 
 describe("Attack", function() {
   describe("canPlay", function() {
     it("returns true when opponents have cars", function() {
-      var me = { cars: [] }; // and I don't
-      var gameData = {
+      let me = { cars: [] }; // and I don't
+      let gameData = {
         players: [
           me,
           { cars: [ "edsel" ] }
@@ -33,8 +32,8 @@ describe("Attack", function() {
     });
 
     it("returns false when opponents don't have cars", function() {
-      var me = { cars: [ "lincoln" ] }; // but I do
-      var gameData = {
+      let me = { cars: [ "lincoln" ] }; // but I do
+      let gameData = {
         players: [
           me,
           { cars: [] }
@@ -46,20 +45,20 @@ describe("Attack", function() {
 
   describe("attack", function() {
     it("revokes the selected car if not blocked", function(done) {
-      var victim = new Player(0);
-      var me = new Player(0);
+      let victim = new Player(0);
+      let me = new Player(0);
 
-      var theCar = new Car(1, 1);
-      victim.gain(theCar);
+      let theCar = new Car(1, 1);
+      victim.gainCar(theCar);
 
-      var gameData = new GameData([ victim, me ]);
+      let gameData = new GameData([ victim, me ], emptyDecks());
 
-      var choiceProvider = {
+      let choiceProvider = {
         chooseOpponentCar: function() { return q(theCar); },
         allowBlockAttack: function() { return q(false); }
       };
 
-      new Attack().play(me, gameData, choiceProvider)
+      new Attack().play(gameData, choiceProvider, me)
         .then(function() {
           assert.notOk(victim.hasCar(theCar));
           done();
@@ -68,21 +67,21 @@ describe("Attack", function() {
     });
 
     it("makes the attacker pay list price if blocked", function(done) {
-      var carPrice = 100;
-      var victim = new Player(0);
-      var me = new Player(carPrice);
+      let carPrice = 100;
+      let victim = new Player(0);
+      let me = new Player(carPrice);
 
-      var theCar = new Car(1, carPrice);
-      victim.gain(theCar);
+      let theCar = new Car(1, carPrice);
+      victim.gainCar(theCar);
 
-      var gameData = new GameData([ victim, me ]);
+      let gameData = new GameData([ victim, me ], emptyDecks());
 
-      var choiceProvider = {
+      let choiceProvider = {
         chooseOpponentCar: function() { return q(theCar); },
         allowBlockAttack: function() { return q(true); }
       };
 
-      new Attack().play(me, gameData, choiceProvider)
+      new Attack().play(gameData, choiceProvider, me)
         .then(function() {
           assert.ok(victim.hasCar(theCar));
           assert.equal(victim.money, carPrice);
@@ -97,51 +96,51 @@ describe("Attack", function() {
 describe("BuyFromAutoExchangeForN", function() {
   describe("canPlay", function() {
     it("can't be played without enough money", function() {
-      var cost = 100;
-      var me = new Player(cost - 1);
-      var gameData = {
+      let cost = 100;
+      let me = new Player(cost - 1);
+      let gameData = {
         carDeck: { remaining: 1 }
       };
 
-      var card = new BuyFromAutoExchangeForN(cost);
+      let card = new BuyFromAutoExchangeForN(cost);
       assert.notOk(card.canPlay(me, gameData));
     });
 
     it("can't be played if there are no cars", function() {
-      var me = new Player(1000000);
-      var gameData = {
+      let me = new Player(1000000);
+      let gameData = {
         carDeck: { remaining: 0 }
       };
 
-      var card = new BuyFromAutoExchangeForN(1);
+      let card = new BuyFromAutoExchangeForN(1);
       assert.notOk(card.canPlay(me, gameData));
     });
 
     it("can be played with enough money and a car", function() {
-      var cost = 100;
-      var me = new Player(cost);
-      var gameData = {
+      let cost = 100;
+      let me = new Player(cost);
+      let gameData = {
         carDeck: { remaining: 1 }
       };
 
-      var card = new BuyFromAutoExchangeForN(cost);
+      let card = new BuyFromAutoExchangeForN(cost);
       assert.ok(card.canPlay(me, gameData));
     });
   });
 
   describe("play", function() {
     it("gives the player the top car and debit accordingly", function(done) {
-      var cost = 100;
-      var me = new Player(cost);
-      var car = new Car(1, 1);
-      var gameData = {
+      let cost = 100;
+      let me = new Player(cost);
+      let car = new Car(1, 1);
+      let gameData = {
         carDeck: {
           pop: function() { return car; }
         }
       };
 
-      var card = new BuyFromAutoExchangeForN(cost);
-      card.play(me, gameData, null)
+      let card = new BuyFromAutoExchangeForN(cost);
+      card.play(gameData, null, me)
         .then(function() {
           assert.ok(me.hasCar(car));
           assert.equal(me.money, 0);
@@ -155,7 +154,7 @@ describe("BuyFromAutoExchangeForN", function() {
 describe("Free", function() {
   describe("canPlay", function() {
     it("can't be played if there are no insurances", function() {
-      var gameData = {
+      let gameData = {
         insuranceDeck: { remaining: 0 }
       };
 
@@ -163,7 +162,7 @@ describe("Free", function() {
     });
 
     it("can be played if there are insurances", function() {
-      var gameData = {
+      let gameData = {
         insuranceDeck: { remaining: 1 }
       };
 
@@ -173,15 +172,15 @@ describe("Free", function() {
 
   describe("play", function() {
     it("gives the player an insurance", function(done) {
-      var me = new Player(0);
-      var insurance = new Insurance();
-      var gameData = {
+      let me = new Player(0);
+      let insurance = new Insurance();
+      let gameData = {
         insuranceDeck: {
           pop: function() { return insurance; }
         }
       };
 
-      new Free().play(me, gameData, null)
+      new Free().play(gameData, null, me)
         .then(function() {
           assert.ok(me.hasInsurance(insurance));
           done();
@@ -193,16 +192,20 @@ describe("Free", function() {
 
 describe("SellForListPlusN", function() {
   describe("play", function() {
+    let price, plus, me, gameData, car;
+
+    beforeEach(function() {
+      price = 100;
+      plus = 50;
+      me = new Player(0);
+      gameData = {};
+
+      car = new Car(1, price);
+      me.gainCar(car);
+    });
+
     it("takes car from player, gives $$$", function(done) {
-      var price = 100;
-      var plus = 50;
-      var me = new Player(0);
-      var gameData = {};
-
-      var car = new Car(1, price);
-      me.gain(car);
-
-      var choiceProvider = {
+      let choiceProvider = {
         chooseOwnCar: function(pGameData, pPlayer) {
           assert.equal(pGameData, gameData);
           assert.equal(pPlayer, me);
@@ -211,10 +214,29 @@ describe("SellForListPlusN", function() {
       };
 
       new SellForListPlusN(plus)
-        .play(me, gameData, choiceProvider)
+        .play(gameData, choiceProvider, me)
         .then(function() {
           assert.notOk(me.hasCar(car));
           assert.equal(me.money, price + plus);
+          done();
+        })
+        .catch(done);
+    });
+
+    it("doesn't take car or give money if I cancel", function(done) {
+      let choiceProvider = {
+        chooseOwnCar: function(pGameData, pPlayer) {
+          assert.equal(pGameData, gameData);
+          assert.equal(pPlayer, me);
+          return q(null);
+        }
+      };
+
+      new SellForListPlusN(plus)
+        .play(gameData, choiceProvider, me)
+        .then(function() {
+          assert.ok(me.hasCar(car));
+          assert.equal(me.money, 0);
           done();
         })
         .catch(done);
@@ -223,14 +245,14 @@ describe("SellForListPlusN", function() {
 
   describe("canPlay", function() {
     it("can be played if the player has a car", function() {
-      var me = new Player(0);
-      var car = new Car(1, 1);
-      me.gain(car);
+      let me = new Player(0);
+      let car = new Car(1, 1);
+      me.gainCar(car);
       assert.ok(new SellForListPlusN(0).canPlay(me, {}));
     });
 
     it("can't be played if the player don't have a car", function() {
-      var me = new Player(0);
+      let me = new Player(0);
       assert.notOk(new SellForListPlusN(0).canPlay(me, {}));
     });
   });
@@ -238,22 +260,26 @@ describe("SellForListPlusN", function() {
 
 describe("SellForBlueBookPlusN", function() {
   describe("play", function() {
-    it("takes car from player, gives $$$", function(done) {
-      var price = 100;
-      var plus = 50;
+    let price, plus, gameData, car, me;
 
-      var gameData = {};
-      var car = new Car(1, 999);
+    beforeEach(function() {
+      price = 100;
+      plus = 50;
 
-      var carPrices = {};
+      gameData = {};
+      car = new Car(1, 999);
+
+      let carPrices = {};
       carPrices[car.id] = price;
-      var blueBook = new BlueBook(carPrices);
+      let blueBook = new BlueBook(carPrices);
 
-      var me = new Player(0);
+      me = new Player(0);
       me.blueBook = blueBook;
-      me.gain(car);
+      me.gainCar(car);
+    });
 
-      var choiceProvider = {
+    it("takes car from player, gives $$$", function(done) {
+      let choiceProvider = {
         chooseOwnCar: function(pGameData, pPlayer) {
           assert.equal(pGameData, gameData);
           assert.equal(pPlayer, me);
@@ -262,10 +288,29 @@ describe("SellForBlueBookPlusN", function() {
       };
 
       new SellForBlueBookPlusN(plus)
-        .play(me, gameData, choiceProvider)
+        .play(gameData, choiceProvider, me)
         .then(function() {
           assert.notOk(me.hasCar(car));
           assert.equal(me.money, price + plus);
+          done();
+        })
+        .catch(done);
+    });
+
+    it("doesn't take care or pay out if I cancel", function(done) {
+      let choiceProvider = {
+        chooseOwnCar: function(pGameData, pPlayer) {
+          assert.equal(pGameData, gameData);
+          assert.equal(pPlayer, me);
+          return q();
+        }
+      };
+
+      new SellForBlueBookPlusN(plus)
+        .play(gameData, choiceProvider, me)
+        .then(function() {
+          assert.ok(me.hasCar(car));
+          assert.equal(me.money, 0);
           done();
         })
         .catch(done);
@@ -274,15 +319,23 @@ describe("SellForBlueBookPlusN", function() {
 
   describe("canPlay", function() {
     it("can be played if the player has a car", function() {
-      var me = new Player(0);
-      var car = new Car(1, 1);
-      me.gain(car);
+      let me = new Player(0);
+      let car = new Car(1, 1);
+      me.gainCar(car);
       assert.ok(new SellForBlueBookPlusN(0).canPlay(me, {}));
     });
 
     it("can't be played if the player don't have a car", function() {
-      var me = new Player(0);
+      let me = new Player(0);
       assert.notOk(new SellForBlueBookPlusN(0).canPlay(me, {}));
     });
   });
 });
+
+function emptyDecks() {
+  return {
+    dcDeck: [],
+    insuranceDeck: [],
+    carDeck: []
+  };
+}

@@ -4,7 +4,8 @@
   "description": "Card pack for Dealer's Choice.",
   "main": "index.js",
   "scripts": {
-    "test": "istanbul cover _mocha test"
+    "test": "mocha --harmony --recursive",
+    "cover": "node --harmony ./node_modules/istanbul-harmony/lib/cli.js cover --hook-run-in-context ./node_modules/mocha/bin/_mocha -- --recursive"
   },
   "repository": {
     "type": "git",
