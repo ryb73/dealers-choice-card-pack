@@ -49,7 +49,7 @@ describe("Attack", function() {
       let me = new Player(0);
 
       let theCar = new Car(1, 1);
-      victim.gainCar(theCar);
+      victim.buyCar(theCar, 0);
 
       let gameData = new GameData([ victim, me ], emptyDecks());
 
@@ -72,7 +72,7 @@ describe("Attack", function() {
       let me = new Player(carPrice);
 
       let theCar = new Car(1, carPrice);
-      victim.gainCar(theCar);
+      victim.buyCar(theCar, 0);
 
       let gameData = new GameData([ victim, me ], emptyDecks());
 
@@ -201,7 +201,7 @@ describe("SellForListPlusN", function() {
       gameData = {};
 
       car = new Car(1, price);
-      me.gainCar(car);
+      me.buyCar(car, 0);
     });
 
     it("takes car from player, gives $$$", function(done) {
@@ -247,7 +247,7 @@ describe("SellForListPlusN", function() {
     it("can be played if the player has a car", function() {
       let me = new Player(0);
       let car = new Car(1, 1);
-      me.gainCar(car);
+      me.buyCar(car, 0);
       assert.ok(new SellForListPlusN(0).canPlay(me, {}));
     });
 
@@ -275,7 +275,7 @@ describe("SellForBlueBookPlusN", function() {
 
       me = new Player(0);
       me.blueBook = blueBook;
-      me.gainCar(car);
+      me.buyCar(car, 0);
     });
 
     it("takes car from player, gives $$$", function(done) {
@@ -321,7 +321,7 @@ describe("SellForBlueBookPlusN", function() {
     it("can be played if the player has a car", function() {
       let me = new Player(0);
       let car = new Car(1, 1);
-      me.gainCar(car);
+      me.buyCar(car, 0);
       assert.ok(new SellForBlueBookPlusN(0).canPlay(me, {}));
     });
 
