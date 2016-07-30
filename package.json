@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --harmony --recursive",
-    "cover": "node --harmony ./node_modules/istanbul-harmony/lib/cli.js cover --hook-run-in-context ./node_modules/mocha/bin/_mocha -- --recursive"
+    "cover": "istanbul cover --hook-run-in-context ./node_modules/mocha/bin/_mocha -- --recursive"
   },
   "repository": {
     "type": "git",
@@ -23,8 +23,8 @@
   "devDependencies": {
     "chai": "3.5.0",
     "chai-as-promised": "5.3.0",
-    "istanbul": "0.4.2",
-    "mocha": "^2.1.0"
+    "istanbul": "0.4.4",
+    "mocha": "2.5.3"
   },
   "dependencies": {
     "lodash": "4.7.0",
