@@ -24,10 +24,10 @@
     "chai": "3.5.0",
     "chai-as-promised": "5.3.0",
     "istanbul": "0.4.4",
-    "mocha": "2.5.3"
+    "mocha": "3.0.2"
   },
   "dependencies": {
-    "lodash": "4.7.0",
+    "lodash": "4.15.0",
     "q": "^1.2.0"
   }
 }
