@@ -206,8 +206,7 @@ describe("SellForListPlusN", function() {
 
     it("takes car from player, gives $$$", function(done) {
       let choiceProvider = {
-        chooseOwnCar: function(pGameData, pPlayer) {
-          assert.equal(pGameData, gameData);
+        chooseOwnCar: function(pPlayer) {
           assert.equal(pPlayer, me);
           return q(car);
         }
@@ -218,25 +217,6 @@ describe("SellForListPlusN", function() {
         .then(function() {
           assert.notOk(me.hasCar(car));
           assert.equal(me.money, price + plus);
-          done();
-        })
-        .catch(done);
-    });
-
-    it("doesn't take car or give money if I cancel", function(done) {
-      let choiceProvider = {
-        chooseOwnCar: function(pGameData, pPlayer) {
-          assert.equal(pGameData, gameData);
-          assert.equal(pPlayer, me);
-          return q(null);
-        }
-      };
-
-      new SellForListPlusN(plus)
-        .play(gameData, choiceProvider, me)
-        .then(function() {
-          assert.ok(me.hasCar(car));
-          assert.equal(me.money, 0);
           done();
         })
         .catch(done);
